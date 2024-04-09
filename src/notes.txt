@@ -1,0 +1,53 @@
+
+Detect host machine and do necessary pre-steps before launching into client
+  - Turn off / init whatever HW the host machine has that TOS1 does not know about
+  - Falcon; set STE bus compatible, Assigns specific hw access handlers just for Falcon etc.
+  - MegaSTE cache, TT extra MFP and so on. Put machine into ST-Low etc..
+
+LineF
+  Some of the TOS1 LineF opcodes collides with real FPU opcodes.
+  The entire thing to blows up on machines equipped with 68881/2
+    - Can easily be solved by patching TOS1 at loadtime. Both the opcodes and the handler.
+    - That TOS1 fline handler needs to be patched anyway because its self modifying code
+      does not play nice with instruction prefetch.
+
+TOS >= 1.06
+  These newer TOS's detect 68010 and longframe support by using a "move ccr,d0"
+  instruction which we cannot intercept, detect or prevent.
+    - Patch TOS at loadtimeAdd option to patch away the 68010 detection on TOS 1.06+ so they use shortframes
+    - Add support for longframe (68010) in Hypervisor?
+
+Add support for mounting floppy disk images.
+    Easily done by installing custom r/w handlers for floppy related registers to emulate a disk drive
+
+Blitter cannot be enabled at the moment because we don't handle read-modify-write faults
+    (using TAS on hardware regs in usermode)
+
+
+Add all the ususal things a nice program should be able to do. sanity and error checks during startup, messages and so on.
+  tos rom image as cmdline option (and drag-drop onto the app) maybe a gui
+  
+
+Vectors and trampolines:
+  Add slightly optimized but still fully featured vectors for interrupts and such
+  Application can override these with slimmed ones for specific targets if it wants.
+    (maybe it doesn't need to emulate usermode etc..)
+
+Add longframe version and 68010 support?
+
+Separate host exception vectors for error/panic handler
+    API: SetClientVector(), SetHostVector()
+
+Document the slightly dodgy way we're storing the interrupted states supervisor bit
+in the lowest bit of the PC in the fake stackframe which we generate for the client.
+(we need that piece of information when emulating the RTE instruction)
+  - ok... so now that is documented. but make some reasonable comments in the code
+    about this non-obvious fact
+  - the reason is that we only have SR and PC in the virtual 68000s stackframes
+    (when hypervising a virtual 68010+ we have all the info needed in the extra word)
+
+
+Add option to trick the virtual ST into thinking it only has 512kb ram
+  - r/w handler for the ST-MMU controller (ignore writes, always return same config byte on read)
+  - mark ST-RAM > 512kb as supervisor only or invalid in the 68030 MMU table for the client
+
