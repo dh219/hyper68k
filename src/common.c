@@ -204,9 +204,6 @@ void DbgBreakDummy(uint32 id) {
 
 void DbgInit(uint16 mode)
 {
-    DbgPrintFunc = DbgPrintDummy;
-    return;
-    
     // test for natfeats
     static bool firstTime = true;
     if (firstTime)
@@ -219,7 +216,7 @@ void DbgInit(uint16 mode)
                 move.l  sp,_nf_old_sp;          \
                 movec   vbr,a0;                 \
                 move.l  0x10(a0),_nf_old_int;   \
-                move.l  1f,0x10(a0);            \
+                move.l  #1f,0x10(a0);            \
                 \
                 move.l  _nf_name_print,-(sp);   \
                 pea     0;                      \
