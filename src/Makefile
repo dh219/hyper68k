@@ -56,6 +56,7 @@ CFLAGS = $(DEFS) $(INCLUDE) \
 	-Wall -Wno-multichar \
 	-Wl,-Map,mapfile \
 	-Wl,--traditional-format \
+	-std=gnu99 \
 
 SRCS = \
 	ext/lgcc.s \

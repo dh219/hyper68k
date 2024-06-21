@@ -204,6 +204,9 @@ void DbgBreakDummy(uint32 id) {
 
 void DbgInit(uint16 mode)
 {
+    DbgPrintFunc = DbgPrintDummy;
+    return;
+    
     // test for natfeats
     static bool firstTime = true;
     if (firstTime)
