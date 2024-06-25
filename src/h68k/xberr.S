@@ -94,8 +94,9 @@ _vec68000_BusError:
     bls.b   0f
     cmp.l   #0x02000000,BERR_SAVESIZE+2(sp)
     bge.b   0f
+unhandled_berr:
 1:  bra.b   1b
-    H68K_FATAL(1);
+    H68K_FATAL(#1);
 0:
 #endif
 
@@ -130,7 +131,7 @@ berrNotDataFault:
     ;// todo:
     ;//  *if* we wanted to support the client executing code from AccessMapped
     ;//  memory then we would have to support stage B/C faults here.
-    H68K_FATAL(0xdeadbe01)
+    H68K_FATAL(#0xdeadbe01)
     bra.b   berrTriggerClientException
 
 
@@ -155,7 +156,7 @@ berrNotDataFault:
 
     BERR_TALIGN
 _h68k_mmuf_Fatal:                           ;// trigger fatal error on access
-    H68K_FATAL(0xdeadbeff);
+    H68K_FATAL(#0xdeadbeff);
     mmuf_fail
 
     BERR_TALIGN
@@ -334,12 +335,12 @@ _h68k_mmuf_rms:                             ;// read-modify-write (TAS)
 _h68kIO_TriggerBerr:
     ;// todo
 0:  bra.b 0b
-    H68K_FATAL(0xdeadbe10);
+    H68K_FATAL(#0xdeadbe10);
 
 _h68kIO_TriggerFatal:
     ;// todo
 0:  bra.b 0b
-    H68K_FATAL(0xdeadbe11);
+    H68K_FATAL(#0xdeadbe11);
 
 
 .macro mmuf_cbegin
@@ -422,7 +423,7 @@ _h68k_IoIgnoreLong:
 _h68k_IoFatalByte:
 _h68k_IoFatalWord:
 _h68k_IoFatalLong:
-    H68K_FATAL(0xdead7000)
+    H68K_FATAL(#0xdead7000)
     rts
 
     BERR_TALIGN

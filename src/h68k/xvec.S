@@ -231,7 +231,7 @@ _vec68000_Group0:
 ;//----------------------------------------------------------------------------------------------
 	.balign 4
 _vec68010_Group0:
-    H68K_FATAL(0xdead0001)
+    H68K_FATAL(#0xdead0001)
     rte
 
 
@@ -310,6 +310,6 @@ _vec68000_Group2:
 	.balign 4
 _vec68010_Group1:
 _vec68010_Group2:
-    H68K_FATAL(0xdead0002)
+    H68K_FATAL(#0xdead0002)
     rte
 

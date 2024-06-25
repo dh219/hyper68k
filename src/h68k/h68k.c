@@ -96,11 +96,13 @@ jmp_buf h68k_terminate_jmpbuf;
 
 void h68k_Run()
 {
-    // prepare memory map before start
-    h68k_PrepareMemoryMap();
 
     // disable all interrupts
+    // this has been moved to the top as TOS4 uses shadow registers during interrupts that rely on the MMU being configured
     disableirq();
+
+    // prepare memory map before start
+    h68k_PrepareMemoryMap();
 
     // save host control registers
     savecreg(usp);

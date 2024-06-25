@@ -68,6 +68,15 @@ void wb_mmuconf(uint32 addr, uint8* in) {
     }
 }
 
+// mega rtc -- silently ignore writes and return FFs
+void rb_rtc(uint32 addr, uint8* out) {
+    *out = 0xff;    
+}
+
+void wb_rtc(uint32 addr, uint8* in) {
+	;
+}
+
 
 //----------------------------------------------------------------------------------
 // ram address high byte translation (floppy dma / shifter)
@@ -197,6 +206,11 @@ int appmain(int args, char** argv)
         h68k_MapIoByte(0xff8201, rb_addrH, wb_addrH);   // screen position
         h68k_MapIoByte(0xff8205, rb_addrH, wb_addrH);   // video address pointer
     }
+    // RTC
+    h68k_MapIoRangeEx(0xfffc00, 0xfffd00, h68k_IoReadBytePT, h68k_IoWriteBytePT, h68k_IoReadWordPT, h68k_IoWriteWordPT, h68k_IoReadLongPT, h68k_IoWriteLongPT);
+    h68k_MapIoByte(0xfffc3b, rb_rtc, wb_rtc);       // emulated rtc conf
+    h68k_MapIoByte(0xfffc25, rb_rtc, wb_rtc);       // emulated rtc conf
+    h68k_MapIoByte(0xfffc27, rb_rtc, wb_rtc);       // emulated rtc conf
 
     for (uint32 i=0x00; i<0x60; i+=4) {
         h68k_SetVectorIpl(i, 7);
