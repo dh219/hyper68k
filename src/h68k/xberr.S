@@ -90,6 +90,7 @@ _vec68000_BusError:
     movem.l BERR_SAVEREGS,-(sp)             ;// save regs
 
 #if BERRHANDLER_ASSERTS    
+    move.l BERR_SAVESIZE+2(sp),d0
     cmp.l   #0x00FFFFFF,BERR_SAVESIZE+2(sp)
     bls.b   0f
     cmp.l   #0x02000000,BERR_SAVESIZE+2(sp)

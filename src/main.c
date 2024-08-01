@@ -68,13 +68,15 @@ void wb_mmuconf(uint32 addr, uint8* in) {
     }
 }
 
-// mega rtc -- silently ignore writes and return FFs
+// mega rtc
 void rb_rtc(uint32 addr, uint8* out) {
+    /* *out = reg_stmmu;    */
+//    DPRINT("rb_rtc()\n");
     *out = 0xff;    
 }
 
 void wb_rtc(uint32 addr, uint8* in) {
-	;
+//    DPRINT("wb_rtc()\n");
 }
 
 
@@ -173,6 +175,7 @@ int appmain(int args, char** argv)
 #if 1
     //h68k_MapIoRangeEx(0xfffa00, 0xfffb00, h68k_IoBerrByte, h68k_IoBerrByte, h68k_IoBerrWord, h68k_IoBerrWord, h68k_IoBerrLong, h68k_IoBerrLong);
     //h68k_MapIoRangeEx(0xfffa00, 0xfffb00, h68k_IoIgnoreByte, h68k_IoIgnoreByte, h68k_IoIgnoreWord, h68k_IoIgnoreWord, h68k_IoIgnoreLong, h68k_IoIgnoreLong);
+    
     h68k_MapIoRangeEx(0xfffa00, 0xfffb00, h68k_IoReadBytePT, h68k_IoWriteBytePT, h68k_IoReadWordPT, h68k_IoWriteWordPT, h68k_IoReadLongPT, h68k_IoWriteLongPT);
     for (uint32 i=0xfffa00; i<0xfffa40; i+=2) {
         h68k_MapIoByte(i, h68k_IoIgnoreByte, h68k_IoIgnoreByte);
@@ -192,6 +195,7 @@ int appmain(int args, char** argv)
     h68k_MapIoRangeEx(0xff8000, 0xff8100, h68k_IoReadBytePT, h68k_IoWriteBytePT, h68k_IoReadWordPT, h68k_IoWriteWordPT, h68k_IoReadLongPT, h68k_IoWriteLongPT);
     h68k_MapIoByte(0xff8001, rb_mmuconf, wb_mmuconf);       // emulated memory config
 
+    
     // set up register intercepts for when emulated ram isn't sharing same address as real ram
     if (ram_data != 0)
     {
@@ -205,6 +209,7 @@ int appmain(int args, char** argv)
         h68k_MapIoRangeEx(0xff8200, 0xff8300, h68k_IoReadBytePT, h68k_IoWriteBytePT, h68k_IoReadWordPT, h68k_IoWriteWordPT, h68k_IoReadLongPT, h68k_IoWriteLongPT);
         h68k_MapIoByte(0xff8201, rb_addrH, wb_addrH);   // screen position
         h68k_MapIoByte(0xff8205, rb_addrH, wb_addrH);   // video address pointer
+
     }
     // RTC
     h68k_MapIoRangeEx(0xfffc00, 0xfffd00, h68k_IoReadBytePT, h68k_IoWriteBytePT, h68k_IoReadWordPT, h68k_IoWriteWordPT, h68k_IoReadLongPT, h68k_IoWriteLongPT);
@@ -442,7 +447,7 @@ void PatchTos1(uint8* rom, uint32 size)
         0x41f9, 0xffff, 0xfa21, 0x43f9, 0xffff, 0xfa1b, 0x12bc, 0x0010, 0x7801, 0x12bc,
         0x0000, 0x10bc, 0x00f0, 0x13fc, 0x0008, 0xffff, 0xfa1b, 0x1010, 0xb004, 0x66fa,
         0x1810, 0x363c, 0x0267, 0xb810, 0x66f6, 0x51cb, 0xfffa, 0x12bc, 0x0010, 0x4ed6 };
-
+    return;
     uint16* p = FindMem(rom, size, p1_startup_waitvbl);
     if (p) {
         DPRINT("  Patching wait at 0x%08x", (uint32)p);
