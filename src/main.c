@@ -68,18 +68,6 @@ void wb_mmuconf(uint32 addr, uint8* in) {
     }
 }
 
-// mega rtc
-void rb_rtc(uint32 addr, uint8* out) {
-    /* *out = reg_stmmu;    */
-//    DPRINT("rb_rtc()\n");
-    *out = 0xff;    
-}
-
-void wb_rtc(uint32 addr, uint8* in) {
-//    DPRINT("wb_rtc()\n");
-}
-
-
 //----------------------------------------------------------------------------------
 // ram address high byte translation (floppy dma / shifter)
 //----------------------------------------------------------------------------------
@@ -156,6 +144,7 @@ int appmain(int args, char** argv)
 
 //    h68k_MapPassThroughSafe(0x00FF8000, 0x01000000);
     h68k_MapPassThrough(0x00FF8000, 0x01000000);
+    
     h68k_MapInvalid(0xF00000, 0xFA0000);    // reserved io space
     h68k_MapInvalid(0xFF0000, 0xFF8000);    // reserved io space
 
@@ -195,7 +184,16 @@ int appmain(int args, char** argv)
     h68k_MapIoRangeEx(0xff8000, 0xff8100, h68k_IoReadBytePT, h68k_IoWriteBytePT, h68k_IoReadWordPT, h68k_IoWriteWordPT, h68k_IoReadLongPT, h68k_IoWriteLongPT);
     h68k_MapIoByte(0xff8001, rb_mmuconf, wb_mmuconf);       // emulated memory config
 
-    
+
+    // ACIAs & RTC
+    h68k_MapIoRangeEx(0xfffc00, 0xfffe00, h68k_IoReadBytePT, h68k_IoWriteBytePT, h68k_IoReadWordPT, h68k_IoWriteWordPT, h68k_IoReadLongPT, h68k_IoWriteLongPT);
+    // ACIAs are 0xfffc00-0xfffc06 only. rest, up to ffffff should be ignored
+    for( uint32 i = 0xfffc08 ; i < 0xfffe00 ; i ++ ) {
+        h68k_MapIoByte( i, h68k_IoReadByteFF, h68k_IoIgnoreByte );       // rtc not present
+    }
+
+//    h68k_MapPassThroughSafe( 0xfffc00, 0xfffe00 );
+
     // set up register intercepts for when emulated ram isn't sharing same address as real ram
     if (ram_data != 0)
     {
@@ -211,11 +209,6 @@ int appmain(int args, char** argv)
         h68k_MapIoByte(0xff8205, rb_addrH, wb_addrH);   // video address pointer
 
     }
-    // RTC
-    h68k_MapIoRangeEx(0xfffc00, 0xfffd00, h68k_IoReadBytePT, h68k_IoWriteBytePT, h68k_IoReadWordPT, h68k_IoWriteWordPT, h68k_IoReadLongPT, h68k_IoWriteLongPT);
-    h68k_MapIoByte(0xfffc3b, rb_rtc, wb_rtc);       // emulated rtc conf
-    h68k_MapIoByte(0xfffc25, rb_rtc, wb_rtc);       // emulated rtc conf
-    h68k_MapIoByte(0xfffc27, rb_rtc, wb_rtc);       // emulated rtc conf
 
     for (uint32 i=0x00; i<0x60; i+=4) {
         h68k_SetVectorIpl(i, 7);
