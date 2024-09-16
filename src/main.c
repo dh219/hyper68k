@@ -138,11 +138,12 @@ int appmain(int args, char** argv)
     InitCart(fname_cart);
     InitRom(fname_rom);
     InitRam(512);
-
+//    InitRam(1024);
+    
     // Setup IO
     h68k_MapInvalid(0x400000, 0xE00000);    // altram
 
-//    h68k_MapPassThroughSafe(0x00FF8000, 0x01000000);
+    //h68k_MapPassThroughSafe(0x00FF8000, 0x01000000);
     h68k_MapPassThrough(0x00FF8000, 0x01000000);
     
     h68k_MapInvalid(0xF00000, 0xFA0000);    // reserved io space
@@ -440,7 +441,7 @@ void PatchTos1(uint8* rom, uint32 size)
         0x41f9, 0xffff, 0xfa21, 0x43f9, 0xffff, 0xfa1b, 0x12bc, 0x0010, 0x7801, 0x12bc,
         0x0000, 0x10bc, 0x00f0, 0x13fc, 0x0008, 0xffff, 0xfa1b, 0x1010, 0xb004, 0x66fa,
         0x1810, 0x363c, 0x0267, 0xb810, 0x66f6, 0x51cb, 0xfffa, 0x12bc, 0x0010, 0x4ed6 };
-    return;
+
     uint16* p = FindMem(rom, size, p1_startup_waitvbl);
     if (p) {
         DPRINT("  Patching wait at 0x%08x", (uint32)p);
