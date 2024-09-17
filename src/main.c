@@ -8,6 +8,7 @@
 #include "h68k/h68k.h"
 #include "stdio.h"
 #include "string.h"
+#include <mint/osbind.h>
 
 //----------------------------------------------------------------------------------
 uint32 cart_data;
@@ -268,6 +269,8 @@ int appmain(int args, char** argv)
     *((volatile uint8*)0xfffa2f) = 0;       // usart : data
 
     DbgInit(DBG_NONE);
+
+    Setscreen( -1, -1, 0 );
 
     // Back in time we go!
     h68k_Run();

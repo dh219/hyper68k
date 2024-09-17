@@ -51,7 +51,7 @@ berr_sav_rmt:   .long
 ;//----------------------------------------------------------------------------------------------
 ;// constants
 ;//----------------------------------------------------------------------------------------------
-#define BERRHANDLER_ASSERTS     1
+#define BERRHANDLER_ASSERTS     0
 #define BERR_SAVEREGS           d0-d1/a0-a2
 #define BERR_SAVESIZE           20
 
