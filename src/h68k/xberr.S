@@ -2,7 +2,7 @@
 ;// Hyper68k : berr.S
 ;// Access error handler
 ;// 
-;// (c)2023 Anders Granlund
+;// (c)2023 Anders Granlund, 2024 D Henderson
 ;//--------------------------------------------------------------------
 ;//
 ;// !! Assumes 256 byte pagetable.
@@ -30,6 +30,9 @@
 #define __asm_inc__
 #include "h68k.h"
 #undef __asm_inc__
+
+    .extern _dprint_test
+    .global _berrLastAdd
 
 ;//#define BERR_BALIGN  BERR_TALIGN
 ;//#define BERR_TALIGN  BERR_TALIGN
@@ -109,6 +112,7 @@ unhandled_berr:
 
     ;// fetch fault address and atc entry
     move.l  BERR_SAVESIZE+16(sp),d1         ;// d1 = fault address
+    move.l d1,_berrLastAdd
     and.l   #0x00FFFFFF,d1                  ;// mask address to 24bits
     ptestr  #1,(d1),#7,a2                   ;// a2 = ATC entry
     tst.b   3(a2)                           ;// lower 8 bits 0 if handler installed for this page
@@ -123,10 +127,27 @@ unhandled_berr:
     move.l  ([4,a2],d0.w*4),a1              ;// jump to handler (d1=fault addr, a0=databuf, a2=atc entry)
     jmp     (a1)
 
+berrTriggerClientExcep:
 berrTriggerClientException:
+
+;//    movem.l d0-d7/a0-a6,-(sp)
+;//    jsr _dprint_test
+;//    move.l #0xdeadd00d,d0
+;//    move.b #66,0x00ff8c87
+;//    movem.l (sp)+,d0-d7/a0-a6
+
+;//    move.w    'b',-(sp)      ;// Offset 4
+;//    move.w    1,-(sp)    ;// Offset 2
+;//    move.w    #3,-(sp)     ;// Offset 0
+;//    trap      #13          ;// Call BIOS
+;//    addq.l    #6,sp        ;// Correct stack
+
+
     movem.l (sp)+,BERR_SAVEREGS             ;// restore regs
     jmp     ([_vec_table+0x8])              ;// trigger group0 exception on client
 
+_berrLastAdd:
+    dc.l 1
 
 berrNotDataFault:
     ;// todo:

@@ -39,6 +39,8 @@ void OnResetCpu();
 void OnResetDevices();
 void OnFatal(struct h68kFatalDump* dump);
 
+void setlowres();
+
 #define RW_OK   0
 #define RW_FAIL ~0
 
@@ -92,6 +94,7 @@ void wb_addrH(uint32 addr, uint8* data) {
 //----------------------------------------------------------------------------------
 int appmain(int args, char** argv)
 {
+    
     DPRINT("Hyper68");
     client_cpu = H68K_CPU_68000;
     host_cpu = H68K_CPU_68030;
@@ -152,10 +155,10 @@ int appmain(int args, char** argv)
 
     h68k_MapInvalid(0xF00000, 0xF00100);    // ide
     h68k_MapInvalid(0xFF8700, 0xFF8800);    // tt scsi
-    h68k_MapInvalid(0xFF8900, 0xFF8A00);    // dma sound
+//    h68k_MapInvalid(0xFF8900, 0xFF8A00);    // dma sound
     h68k_MapInvalid(0xFF8A00, 0xFF8B00);    // blitter
     h68k_MapInvalid(0xFF8C00, 0xFF8F00);    // TT/MSTe
-    h68k_MapInvalid(0xFF9200, 0xFF9300);    // extended joyport
+//    h68k_MapInvalid(0xFF9200, 0xFF9300);    // extended joyport
 
     h68k_MapInvalid(0xFF9800, 0xFF9900);    // falcon palette
     h68k_MapInvalid(0xFFA200, 0xFFA300);    // falcon dsp
@@ -186,16 +189,15 @@ int appmain(int args, char** argv)
     h68k_MapIoRangeEx(0xff8000, 0xff8100, h68k_IoReadBytePT, h68k_IoWriteBytePT, h68k_IoReadWordPT, h68k_IoWriteWordPT, h68k_IoReadLongPT, h68k_IoWriteLongPT);
     h68k_MapIoByte(0xff8001, rb_mmuconf, wb_mmuconf);       // emulated memory config
 
-
     // ACIAs & RTC
-    h68k_MapIoRangeEx(0xfffc00, 0xfffe00, h68k_IoReadBytePT, h68k_IoWriteBytePT, h68k_IoReadWordPT, h68k_IoWriteWordPT, h68k_IoReadLongPT, h68k_IoWriteLongPT);
-    // ACIAs are 0xfffc00-0xfffc06 only. rest, up to ffffff should be ignored
-    for( uint32 i = 0xfffc08 ; i < 0xfffe00 ; i ++ ) {
-        h68k_MapIoByte( i, h68k_IoReadByteFF, h68k_IoIgnoreByte );       // rtc not present
+    // ACIAs are 0xfffc00-0xfffc06 only. the rest up to fffe00, including the RTC at fffc20 should be ignored
+    h68k_MapDisconnected( 0xfffb00, 0xffff00 );
+    for (uint32 i=0xfffc00; i<0xfffc08; i+=2) {
+        h68k_MapIoByte(i, h68k_IoReadBytePT, h68k_IoWriteBytePT);
+        h68k_MapIoWord(i, h68k_IoReadWordPT, h68k_IoWriteWordPT);
+        h68k_MapIoLong(i, h68k_IoBerrLong, h68k_IoBerrLong);
     }
-
-//    h68k_MapPassThroughSafe( 0xfffc00, 0xfffe00 );
-
+    
     // set up register intercepts for when emulated ram isn't sharing same address as real ram
     if (ram_data != 0)
     {
@@ -271,6 +273,7 @@ int appmain(int args, char** argv)
     DbgInit(DBG_NONE);
 
     Setscreen( -1, -1, 0 );
+    //setlowres();
 
     // Back in time we go!
     h68k_Run();
@@ -424,12 +427,14 @@ bool InitRom(const char* filename)
     ASSERT(rom_size == filesize, "Failed reading '%s'", filename);
     DPRINT(" Rom: 0x%08x : 0x%08x ver:0x%04x (%dKb)", (uint32)rom_data, rom_addr, rom_ver, rom_size);
 
-    if (rom_ver < 0x0200) {
-        PatchTos1((uint8*)rom_data, rom_size);
-    } else {
-        PatchTos2((uint8*)rom_data, rom_size);
+    if( strncmp( ((char*)rom_data+0x2c), "ETOS", 4 ) != 0 ) {
+        if (rom_ver < 0x0200) {
+            PatchTos1((uint8*)rom_data, rom_size);
+        } else {
+            PatchTos2((uint8*)rom_data, rom_size);
+        }
     }
-
+    
     h68k_MapReadOnly(rom_addr, rom_addr + rom_size, (uint32)rom_data);
     return true;
 }
@@ -487,4 +492,31 @@ void PatchTos2(uint8* rom, uint32 size)
         DPRINT("  Patching rom crc at 0x%08x", (uint32)p);
         p[-5] = 0x4e71; // nop              (was bne.s fail)
     }
+}
+
+extern uint32* berrLastAdd;
+
+void dprint_test() {
+    /*
+    __asm__ __volatile__ (          \
+        "                           \
+        move.l  #0xdeadd00d,d0;     \
+        "                           \
+      : : : "cc" );
+    */
+  	//DPRINT("BERR: %p", berrLastAdd);
+
+    char *str = "BERR\r\n";
+
+    volatile unsigned char *sccbctl = (unsigned char*)0x00ff8c85;
+    volatile unsigned char *sccbdata = (unsigned char*)0x00ff8c87;
+    char *out = str;
+    while( *out ) {
+        while( !( (*sccbctl) & 0x04 ) ){
+            ;
+        }
+        //*sccbdata = *out;
+        out++;
+    }
+    
 }

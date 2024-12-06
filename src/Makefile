@@ -2,7 +2,7 @@
 # Atari ST emulator for Atari 68030
 # Example project for Hyper68k
 #
-# (c)2023 Anders Granlund
+# (c)2023 Anders Granlund, 2024 D Henderson
 #----------------------------------------------------------------------------------
 
 GCC_TARGET = m68k-atari-mint-gcc

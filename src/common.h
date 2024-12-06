@@ -36,6 +36,7 @@ typedef short           bool;
 
 #define DBG_NONE        0
 #define DBG_SCREEN      1
+#define DBG_SERIAL      2
 
 #ifndef NDEBUG
     #include "stdio.h"

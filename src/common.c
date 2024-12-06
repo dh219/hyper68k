@@ -20,7 +20,8 @@ int supermain()
     int ret = setjmp(_main_jmpbuf);
     if (ret == 0) {
         #ifndef NDEBUG
-        DbgInit(DBG_SCREEN);
+        DbgInit(DBG_NONE);
+//        DbgInit(DBG_SERIAL);
         #endif
         ret = appmain(_main_argc, _main_argv);
     }
@@ -183,6 +184,15 @@ void DbgPrintScreen(char* str) {
     printf(str);
 }
 
+void DbgPrintSerial(char* str) {
+    printf(str);
+    char *out = str;
+    while( out[0] ) {
+        Bconout( 7, out[0] );
+        out++;
+    }
+}
+
 void DbgBreakScreen(uint32 id) {
     __asm__ __volatile__ (              \
         "                               \
@@ -244,6 +254,7 @@ void DbgInit(uint16 mode)
     } else {
         switch (mode) {
             case DBG_SCREEN:    DbgPrintFunc = DbgPrintScreen; break;
+            case DBG_SERIAL:    DbgPrintFunc = DbgPrintSerial; break;
             default:            DbgPrintFunc = DbgPrintDummy; break;
         }
     }
